@@ -1,0 +1,156 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row g-4">
+  <!-- ЛЕВАЯ КОЛОНКА -->
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Создать запись</span>
+          <span class="badge text-bg-light">appointments</span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <form method="post" action="{{ url_for('create_appointment') }}" class="needs-validation" novalidate>
+
+          <!-- ПАЦИЕНТ -->
+          <div class="mb-3">
+            <label class="form-label">Пациент</label>
+            <select class="form-select" name="patient_id" id="patientSelect" required>
+              <option value="" selected disabled>Выберите...</option>
+              {% for p in patients %}
+                <option value="{{ p.id }}">{{ p.full_name }}</option>
+              {% endfor %}
+            </select>
+            <div class="invalid-feedback">Нужен пациент.</div>
+          </div>
+
+          <!-- ВРАЧ -->
+          <div class="mb-3">
+            <label class="form-label">Врач</label>
+            <select class="form-select" name="doctor_id" id="doctorSelect" required>
+              <option value="" selected disabled>Выберите...</option>
+              {% for d in doctors %}
+                <option value="{{ d.id }}">{{ d.full_name }} ({{ d.specialty }})</option>
+              {% endfor %}
+            </select>
+            <div class="invalid-feedback">Нужен врач.</div>
+          </div>
+
+          <!-- СТАТУС / ОПЛАТА -->
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label">Статус</label>
+              <select class="form-select" name="status_id" required>
+                {% for s in statuses %}
+                  <option value="{{ s.id }}">{{ s.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Оплата</label>
+              <select class="form-select" name="payment_type_id" required>
+                {% for pt in payment_types %}
+                  <option value="{{ pt.id }}">{{ pt.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <!-- ДАТА -->
+          <div class="mt-3">
+            <label class="form-label">Дата/время приёма</label>
+            <input class="form-control" type="datetime-local" name="visit_datetime"
+                   min="{{ min_visit_dt }}" max="{{ max_visit_dt }}" required>
+            <div class="invalid-feedback">Укажите дату/время.</div>
+          </div>
+
+          <!-- ПРИЧИНА -->
+          <div class="mt-3">
+            <label class="form-label">Причина</label>
+            <input class="form-control" type="text" name="reason"
+                   minlength="5" maxlength="50" required>
+            <div class="invalid-feedback">5–50 символов.</div>
+          </div>
+
+          <!-- ДЛИТЕЛЬНОСТЬ / ЦЕНА -->
+          <div class="row g-2 mt-3">
+            <div class="col-md-6">
+              <label class="form-label">Длительность (мин)</label>
+              <input class="form-control" type="number" name="duration_minutes"
+                     min="10" max="30" value="15" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Цена (руб)</label>
+              <input class="form-control" type="number" name="price"
+                     min="0" max="9999.99" step="0.01" value="0.00" required>
+            </div>
+          </div>
+
+          <!-- КОММЕНТ -->
+          <div class="mt-3">
+            <label class="form-label">Комментарий врача (опционально)</label>
+            <textarea class="form-control" name="doctor_comment" maxlength="200" rows="2"></textarea>
+          </div>
+
+          <button class="btn btn-accent w-100 mt-3" type="submit">
+            Создать запись
+          </button>
+        </form>
+
+        <div class="small text-muted mt-2">
+          Ограничения дополнительно проверяются на сервере/в БД.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ПРАВАЯ КОЛОНКА -->
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Текущие записи</span>
+        <span class="badge text-bg-light">appointments</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-sm table-striped mb-0 align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Время</th>
+              <th>Пациент</th>
+              <th>Врач</th>
+              <th>Статус</th>
+              <th>Оплата</th>
+              <th>Причина</th>
+              <th class="text-end">Мин</th>
+              <th class="text-end">Цена</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in appointments %}
+            <tr>
+              <td>{{ a.id }}</td>
+              <td><code>{{ a.visit_datetime }}</code></td>
+              <td>{{ a.patient_name }}</td>
+              <td>{{ a.doctor_name }}</td>
+              <td>{{ a.status_name }}</td>
+              <td>{{ a.payment_type_name }}</td>
+              <td>{{ a.reason }}</td>
+              <td class="text-end">{{ a.duration_minutes }}</td>
+              <td class="text-end">{{ "%.2f"|format(a.price) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

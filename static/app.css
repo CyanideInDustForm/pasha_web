@@ -1,0 +1,31 @@
+/* static/app.css */
+:root{
+  --accent: #3FE0D0;
+}
+
+.btn-accent{
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #003b37;
+  font-weight: 600;
+}
+
+.btn-accent:hover{
+  background: #2fd1c2;
+  border-color: #2fd1c2;
+  color: #003b37;
+}
+
+.btn-outline-accent{
+  border-color: var(--accent);
+  color: #006b63;
+}
+
+.btn-outline-accent:hover{
+  background: var(--accent);
+  color: #003b37;
+}
+
+code{
+  color: #0d6efd;
+}

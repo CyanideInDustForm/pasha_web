@@ -1,0 +1,187 @@
+<!-- templates/admin.html -->
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card shadow-sm mb-3">
+  <div class="card-header bg-white fw-semibold">Администрирование</div>
+  <div class="card-body">
+    <form method="get" action="{{ url_for('admin') }}" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label">Таблица</label>
+        <select class="form-select" name="table" onchange="this.form.submit()">
+          {% for t in ['patients','doctors','appointments','statuses','payment_types'] %}
+            <option value="{{ t }}" {{ 'selected' if t==table else '' }}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <span class="fw-semibold">Добавить запись в {{ table }}</span>
+    <span class="badge text-bg-light">валидация через CHECK/FK/UNIQUE</span>
+  </div>
+
+  <div class="card-body">
+    {% if table == 'patients' %}
+      <form method="post" action="{{ url_for('admin_create', table='patients') }}" class="needs-validation" novalidate>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label">ФИО</label>
+            <input class="form-control" name="full_name" minlength="5" maxlength="30" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Телефон</label>
+            <input class="form-control" name="phone" minlength="10" maxlength="15" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email (опционально)</label>
+            <input class="form-control" name="email" maxlength="20">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Дата рождения</label>
+            <input class="form-control" type="date" name="birth_date"
+                   min="1920-01-01" max="{{ today }}" required>
+          </div>
+        </div>
+        <button class="btn btn-accent mt-3" type="submit">Добавить</button>
+      </form>
+
+    {% elif table == 'doctors' %}
+      <form method="post" action="{{ url_for('admin_create', table='doctors') }}" class="needs-validation" novalidate>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label">ФИО</label>
+            <input class="form-control" name="full_name" minlength="10" maxlength="30" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Специализация</label>
+            <input class="form-control" name="specialty" minlength="5" maxlength="20" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Кабинет</label>
+            <input class="form-control" name="cabinet" minlength="1" maxlength="10" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Телефон</label>
+            <input class="form-control" name="phone" minlength="10" maxlength="15" required>
+          </div>
+        </div>
+        <button class="btn btn-accent mt-3" type="submit">Добавить</button>
+      </form>
+
+    {% elif table == 'appointments' %}
+      <form method="post" action="{{ url_for('admin_create', table='appointments') }}" class="needs-validation" novalidate>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label">Пациент</label>
+            <select class="form-select" name="patient_id" required>
+              {% for p in patients %}
+                <option value="{{ p.id }}">{{ p.full_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Врач</label>
+            <select class="form-select" name="doctor_id" required>
+              {% for d in doctors %}
+                <option value="{{ d.id }}">{{ d.full_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Статус</label>
+            <select class="form-select" name="status_id" required>
+              {% for s in statuses %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Оплата</label>
+            <select class="form-select" name="payment_type_id" required>
+              {% for pt in payment_types %}<option value="{{ pt.id }}">{{ pt.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Дата/время</label>
+            <input class="form-control" type="datetime-local" name="visit_datetime"
+                   min="{{ min_visit_dt }}" max="{{ max_visit_dt }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Причина</label>
+            <input class="form-control" name="reason" minlength="5" maxlength="50" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Минут</label>
+            <input class="form-control" type="number" name="duration_minutes" min="10" max="30" value="15" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Цена</label>
+            <input class="form-control" type="number" name="price" min="0" max="9999.99" step="0.01" value="0.00" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Комментарий (опционально)</label>
+            <textarea class="form-control" name="doctor_comment" maxlength="200" rows="2"></textarea>
+          </div>
+        </div>
+        <button class="btn btn-accent mt-3" type="submit">Добавить</button>
+      </form>
+
+    {% elif table == 'statuses' %}
+      <form method="post" action="{{ url_for('admin_create', table='statuses') }}">
+        <label class="form-label">Название статуса</label>
+        <input class="form-control" name="name" minlength="6" maxlength="13" required>
+        <div class="form-text">
+          Внимание: таблица ограничена id 1..4, добавление новых строк, скорее всего, вызовет ошибку CHECK.
+        </div>
+        <button class="btn btn-accent mt-3" type="submit">Добавить</button>
+      </form>
+
+    {% elif table == 'payment_types' %}
+      <form method="post" action="{{ url_for('admin_create', table='payment_types') }}">
+        <label class="form-label">Название типа оплаты</label>
+        <input class="form-control" name="name" minlength="3" maxlength="18" required>
+        <div class="form-text">
+          Внимание: таблица ограничена id 1..8, добавление новых строк, скорее всего, вызовет ошибку CHECK.
+        </div>
+        <button class="btn btn-accent mt-3" type="submit">Добавить</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card shadow-sm mt-3">
+  <div class="card-header">Данные таблицы {{ table }}</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped">
+      <thead>
+        <tr>
+          {% for col in rows[0].keys() %}
+            <th>{{ col }}</th>
+          {% endfor %}
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            {% for v in r %}
+              <td>{{ v }}</td>
+            {% endfor %}
+            <td>
+              <form method="post"
+                    action="{{ url_for('admin_delete', table=table, id=r['id']) }}">
+                <button class="btn btn-sm btn-danger">Удалить</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

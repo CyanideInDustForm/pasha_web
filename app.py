@@ -6,7 +6,7 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, date
 from typing import Any, Dict, List, Optional, Tuple
-import pyodbc
+## import pyodbc
 
 print("pyodbc подключен")
 

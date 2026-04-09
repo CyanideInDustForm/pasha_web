@@ -1,4 +1,5 @@
 <!-- templates/search.html -->
+
 {% extends "base.html" %}
 {% block content %}
 
@@ -12,243 +13,217 @@
 </div>
 
 {% if mode == 'one' %}
-  <div class="card shadow-sm mb-3">
-    <div class="card-header bg-white fw-semibold">Поиск по одной таблице</div>
-    <div class="card-body">
-      <form method="get" action="{{ url_for('search') }}" class="row g-2">
-        <input type="hidden" name="mode" value="one">
 
-        <div class="col-md-3">
-          <label class="form-label">Сущность</label>
+<div class="card shadow-sm mb-3">
+  <div class="card-header bg-white fw-semibold">Поиск по одной таблице</div>
+  <div class="card-body">
+    <form method="get" action="{{ url_for('search') }}" class="row g-2">
+      <input type="hidden" name="mode" value="one">
+
+      <div class="col-md-3">
+        <label class="form-label">Сущность</label>
+        <div class="input-group">
           <select class="form-select" name="entity" onchange="this.form.submit()">
-            <option value="patients" {{ 'selected' if meta.entity=='patients' else '' }}>patients</option>
-            <option value="doctors" {{ 'selected' if meta.entity=='doctors' else '' }}>doctors</option>
-            <option value="appointments" {{ 'selected' if meta.entity=='appointments' else '' }}>appointments</option>
+            <option value="patients" {% if request.args.get('entity')=='patients' %}selected{% endif %}>patients</option>
+            <option value="doctors" {% if request.args.get('entity')=='doctors' %}selected{% endif %}>doctors</option>
+            <option value="appointments" {% if request.args.get('entity')=='appointments' %}selected{% endif %}>appointments</option>
           </select>
         </div>
+      </div>
 
-        {% if meta.entity == 'patients' %}
-          <div class="col-md-3">
-            <label class="form-label">Фамилия/ФИО начинается с</label>
-            <input class="form-control" name="full_name_prefix" placeholder="Иванов">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Телефон содержит</label>
-            <input class="form-control" name="phone_contains" placeholder="900">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Дата рождения от</label>
-            <input class="form-control" type="date" name="birth_date_from" min="1920-01-01" max="{{ today }}">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Дата рождения до</label>
-            <input class="form-control" type="date" name="birth_date_to" min="1920-01-01" max="{{ today }}">
-          </div>
-
-        {% elif meta.entity == 'doctors' %}
-          <div class="col-md-3">
-            <label class="form-label">ФИО начинается с</label>
-            <input class="form-control" name="full_name_prefix" placeholder="Доктор">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Специализация</label>
-            <select class="form-select" name="specialty">
-              <option value="">(любая)</option>
-              {% for s in specialties %}
-                <option value="{{ s.specialty }}">{{ s.specialty }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Кабинет</label>
-            <select class="form-select" name="cabinet">
-              <option value="">(любой)</option>
-              {% for c in cabinets %}
-                <option value="{{ c.cabinet }}">{{ c.cabinet }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-        {% elif meta.entity == 'appointments' %}
-          <div class="col-md-3">
-            <label class="form-label">Статус</label>
-            <select class="form-select" name="status_id">
-              <option value="">(любой)</option>
-              {% for s in statuses %}
-                <option value="{{ s.id }}">{{ s.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Оплата</label>
-            <select class="form-select" name="payment_type_id">
-              <option value="">(любая)</option>
-              {% for pt in payment_types %}
-                <option value="{{ pt.id }}">{{ pt.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Приём от</label>
-            <input class="form-control" type="datetime-local" name="visit_from"
-                   min="{{ min_visit_dt }}" max="{{ max_visit_dt }}">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Приём до</label>
-            <input class="form-control" type="datetime-local" name="visit_to"
-                   min="{{ min_visit_dt }}" max="{{ max_visit_dt }}">
-          </div>
-        {% endif %}
-
-        <div class="col-12">
-          <button class="btn btn-accent" type="submit">Найти</button>
+      {% if meta.entity == 'patients' %}
+      <div class="col-md-3">
+        <label class="form-label">ФИО начинается с</label>
+        <div class="input-group">
+          <input class="form-control" name="full_name_prefix"
+                 value="{{ request.args.get('full_name_prefix','') }}">
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin', table='patients') }}">+</a>
         </div>
-      </form>
-    </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Телефон содержит</label>
+        <div class="input-group">
+          <input class="form-control" name="phone_contains"
+                 value="{{ request.args.get('phone_contains','') }}">
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin', table='patients') }}">+</a>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Дата рождения от</label>
+        <input class="form-control" type="date" name="birth_date_from"
+               value="{{ request.args.get('birth_date_from','') }}" min="1920-01-01" max="{{ today }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Дата рождения до</label>
+        <input class="form-control" type="date" name="birth_date_to"
+               value="{{ request.args.get('birth_date_to','') }}" min="1920-01-01" max="{{ today }}">
+      </div>
+
+      {% elif meta.entity == 'doctors' %}
+      <div class="col-md-3">
+        <label class="form-label">ФИО начинается с</label>
+        <div class="input-group">
+          <input class="form-control" name="full_name_prefix"
+                 value="{{ request.args.get('full_name_prefix','') }}">
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin', table='doctors') }}">+</a>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Специализация</label>
+        <div class="input-group">
+          <select class="form-select" name="specialty">
+            <option value="">(любая)</option>
+            {% for s in specialties %}
+            <option value="{{ s.specialty }}" {% if request.args.get('specialty') == s.specialty %}selected{% endif %}>
+              {{ s.specialty }}
+            </option>
+            {% endfor %}
+          </select>
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin', table='doctors') }}">+</a>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Кабинет</label>
+        <div class="input-group">
+          <select class="form-select" name="cabinet">
+            <option value="">(любой)</option>
+            {% for c in cabinets %}
+            <option value="{{ c.cabinet }}" {% if request.args.get('cabinet') == c.cabinet %}selected{% endif %}>
+              {{ c.cabinet }}
+            </option>
+            {% endfor %}
+          </select>
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin', table='doctors') }}">+</a>
+        </div>
+      </div>
+
+      {% elif meta.entity == 'appointments' %}
+      <div class="col-md-3">
+        <label class="form-label">Статус</label>
+        <div class="input-group">
+          <select class="form-select" name="status_id">
+            <option value="">(любой)</option>
+            {% for s in statuses %}
+            <option value="{{ s.id }}" {% if request.args.get('status_id') == s.id|string %}selected{% endif %}>
+              {{ s.name }}
+            </option>
+            {% endfor %}
+          </select>
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin', table='statuses') }}">+</a>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Тип оплаты</label>
+        <div class="input-group">
+          <select class="form-select" name="payment_type_id">
+            <option value="">(любая)</option>
+            {% for pt in payment_types %}
+            <option value="{{ pt.id }}" {% if request.args.get('payment_type_id') == pt.id|string %}selected{% endif %}>
+              {{ pt.name }}
+            </option>
+            {% endfor %}
+          </select>
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin', table='payment_types') }}">+</a>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Приём от</label>
+        <input class="form-control" type="datetime-local" name="visit_from"
+               value="{{ request.args.get('visit_from','') }}" min="{{ min_visit_dt }}" max="{{ max_visit_dt }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Приём до</label>
+        <input class="form-control" type="datetime-local" name="visit_to"
+               value="{{ request.args.get('visit_to','') }}" min="{{ min_visit_dt }}" max="{{ max_visit_dt }}">
+      </div>
+
+      {% endif %}
+
+      <div class="col-12">
+        <button class="btn btn-accent">Найти</button>
+      </div>
+    </form>
   </div>
+</div>
 
 {% elif mode == 'two' %}
-  <div class="card shadow-sm mb-3">
-    <div class="card-header bg-white fw-semibold">Поиск по двум таблицам (каскад)</div>
-    <div class="card-body">
-      <form method="get" action="{{ url_for('search') }}" class="row g-2">
-        <input type="hidden" name="mode" value="two">
 
-        <div class="col-md-6">
-          <label class="form-label">Пациент</label>
+<div class="card shadow-sm mb-3">
+  <div class="card-header bg-white fw-semibold">Поиск по двум таблицам</div>
+  <div class="card-body">
+    <form method="get" action="{{ url_for('search') }}" class="row g-2">
+      <input type="hidden" name="mode" value="two">
+
+      <div class="col-md-6">
+        <label class="form-label">Пациент</label>
+        <div class="input-group">
           <select class="form-select" name="patient_id" id="cascadePatient">
             <option value="">(выберите)</option>
             {% for p in patients %}
-              <option value="{{ p.id }}">{{ p.full_name }}</option>
+            <option value="{{ p.id }}" {% if request.args.get('patient_id') == p.id|string %}selected{% endif %}>
+              {{ p.full_name }}
+            </option>
             {% endfor %}
           </select>
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin', table='patients') }}">+</a>
         </div>
+      </div>
 
-        <div class="col-md-6">
-          <label class="form-label">Дата/время приёма</label>
+      <div class="col-md-6">
+        <label class="form-label">Дата приёма</label>
+        <div class="input-group">
           <select class="form-select" name="visit_datetime" id="cascadeVisit">
             <option value="">(сначала выберите пациента)</option>
+            {% for dt in visits %}
+            <option value="{{ dt }}" {% if request.args.get('visit_datetime') == dt|string %}selected{% endif %}>
+              {{ dt }}
+            </option>
+            {% endfor %}
           </select>
+          <a class="btn btn-outline-secondary" href="{{ url_for('admin', table='appointments') }}">+</a>
         </div>
+      </div>
 
-        <div class="col-12">
-          <button class="btn btn-accent" type="submit">Найти</button>
-        </div>
-      </form>
-      <div class="form-text">Шаг 2 заполняется через API, шаг 3 — GET запросом поиска.</div>
-    </div>
+      <div class="col-12">
+        <button class="btn btn-accent">Найти</button>
+      </div>
+    </form>
   </div>
+</div>
 
 {% elif mode == 'agg' %}
-  <div class="card shadow-sm mb-3">
-    <div class="card-header bg-white fw-semibold">Агрегация: количество приёмов по врачу</div>
-    <div class="card-body small text-muted">
-      SQL-идея: GROUP BY doctor_id, COUNT(id).
-    </div>
-  </div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-header bg-white fw-semibold">Агрегация: количество приёмов по врачу</div>
+</div>
+
 {% endif %}
 
 <div class="card shadow-sm">
   <div class="card-header bg-white fw-semibold">Результаты</div>
-
   {% if results %}
-    <div class="table-responsive">
-      <table class="table table-sm table-striped mb-0 align-middle">
-        <thead>
-          <tr>
-            {% if mode == 'agg' %}
-              <th>doctor_name</th>
-              <th>specialty</th>
-              <th class="text-end">COUNT</th>
-
-            {% elif mode == 'one' and meta.entity == 'patients' %}
-              <th>ID</th>
-              <th>ФИО</th>
-              <th>Телефон</th>
-              <th>Email</th>
-              <th>Дата рождения</th>
-
-            {% elif mode == 'one' and meta.entity == 'doctors' %}
-              <th>ID</th>
-              <th>ФИО</th>
-              <th>Специализация</th>
-              <th>Кабинет</th>
-              <th>Телефон</th>
-
-            {% elif mode == 'one' and meta.entity == 'appointments' %}
-              <th>ID</th>
-              <th>Пациент</th>
-              <th>Врач</th>
-              <th>Статус</th>
-              <th>Оплата</th>
-              <th>Дата</th>
-              <th>Причина</th>
-
-            {% elif mode == 'two' %}
-              {% for key in results[0].keys() %}
-                <th>{{ key }}</th>
-              {% endfor %}
-
-            {% else %}
-              {% for key in results[0].keys() %}
-                <th>{{ key }}</th>
-              {% endfor %}
-            {% endif %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in results %}
-            {% if mode == 'agg' %}
-              <tr>
-                <td>{{ r.doctor_name }}</td>
-                <td>{{ r.specialty }}</td>
-                <td class="text-end">{{ r.appointments_count }}</td>
-              </tr>
-
-            {% elif mode == 'one' and meta.entity == 'patients' %}
-              <tr>
-                <td>{{ r.id }}</td>
-                <td>{{ r.full_name }}</td>
-                <td>{{ r.phone }}</td>
-                <td>{{ r.email or '—' }}</td>
-                <td>{{ r.birth_date }}</td>
-              </tr>
-
-            {% elif mode == 'one' and meta.entity == 'doctors' %}
-              <tr>
-                <td>{{ r.id }}</td>
-                <td>{{ r.full_name }}</td>
-                <td>{{ r.specialty }}</td>
-                <td>{{ r.cabinet }}</td>
-                <td>{{ r.phone }}</td>
-              </tr>
-
-            {% elif mode == 'one' and meta.entity == 'appointments' %}
-              <tr>
-                <td>{{ r.id }}</td>
-                <td>{{ r.patient_name }}</td>
-                <td>{{ r.doctor_name }}</td>
-                <td>{{ r.status_name }}</td>
-                <td>{{ r.payment_type_name }}</td>
-                <td>{{ r.visit_datetime }}</td>
-                <td>{{ r.reason }}</td>
-              </tr>
-
-            {% else %}
-              <tr>
-                {% for value in r.values() %}
-                  <td>{{ value if value is not none else '—' }}</td>
-                {% endfor %}
-              </tr>
-            {% endif %}
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0 align-middle">
+      <thead>
+        <tr>
+          {% for key in results[0].keys() %}
+          <th>{{ key }}</th>
           {% endfor %}
-        </tbody>
-      </table>
-    </div>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          {% for value in r.values() %}
+          <td>{{ value if value is not none else '—' }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
-    <div class="card-body text-muted">
-      Ничего не найдено.
-    </div>
+  <div class="card-body text-muted">Ничего не найдено</div>
   {% endif %}
 </div>
 

@@ -154,7 +154,7 @@
 </div>
 
 <div class="card shadow-sm mt-3">
-  <div class="card-header">Данные таблицы {{ table }}</div>
+  <div class="card-header">Данные таблицы {{ table }}, чтобы изменить ячейку - нажмите на нее</div>
   <div class="table-responsive">
     <table class="table table-sm table-striped">
       <thead>
@@ -168,8 +168,25 @@
       <tbody>
         {% for r in rows %}
           <tr>
+            {% set non_editable_indexes = [] %}
+
+            {# определяем какие колонки нельзя редактировать #}
+            {% if table == 'appointments' %}
+              {% set non_editable_indexes = [0,1,2,3,4] %} {# первые 5 колонок - id #}
+            {% elif table in ['statuses', 'payment_types'] %}
+              {% set non_editable_indexes = range(r|length) %} {# все колонки заблокированы #}
+            {% else %}
+              {% set non_editable_indexes = [0] %} {# только первая колонка id #}
+            {% endif %}
+
             {% for v in r %}
-              <td>{{ v }}</td>
+              <td
+                {% if loop.index0 not in non_editable_indexes %}contenteditable="true"{% endif %}
+                data-id="{{ r[0] }}"
+                data-field="{{ loop.index0 }}"
+                class="editable">
+                {{ v }}
+              </td>
             {% endfor %}
             <td>
               <form method="post"

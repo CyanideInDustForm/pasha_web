@@ -82,3 +82,60 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  // --- динамический поиск для mode='one' ---
+  const formOne = document.querySelector("form[action='{{ url_for('search') }}'][input[name='mode'][value='one']]");
+  const resultsContainer = document.querySelector(".card.shadow-sm + .card.shadow-sm"); // таблица результатов
+
+  if (formOne && resultsContainer) {
+
+    async function updateResults() {
+      const formData = new FormData(formOne);
+      const entity = formData.get("entity") || "patients";
+
+      const params = new URLSearchParams();
+      for (const [k, v] of formData.entries()) {
+        if (v) params.append(k, v);
+      }
+
+      try {
+        const res = await fetch(`/api/search?${params.toString()}`);
+        const data = await res.json();
+        if (!data.rows) throw new Error("Нет данных");
+
+        // обновим таблицу
+        const tableHTML = generateTableHTML(data.rows);
+        resultsContainer.innerHTML = `
+          <div class="card-header bg-white fw-semibold">Результаты</div>
+          <div class="table-responsive">
+            ${tableHTML}
+          </div>
+        `;
+      } catch (err) {
+        resultsContainer.innerHTML = `<div class="card-body text-danger">Ошибка загрузки: ${err.message}</div>`;
+      }
+    }
+
+    function generateTableHTML(rows) {
+      if (!rows.length) return `<div class="card-body text-muted">Ничего не найдено</div>`;
+      const headers = Object.keys(rows[0]);
+      let html = "<table class='table table-sm table-striped mb-0 align-middle'><thead><tr>";
+      for (const h of headers) html += `<th>${h}</th>`;
+      html += "</tr></thead><tbody>";
+      for (const r of rows) {
+        html += "<tr>";
+        for (const val of Object.values(r)) html += `<td>${val ?? '—'}</td>`;
+        html += "</tr>";
+      }
+      html += "</tbody></table>";
+      return html;
+    }
+
+    // --- события для всех полей формы ---
+    formOne.querySelectorAll("input, select").forEach(el => {
+      el.addEventListener("change", updateResults);
+      el.addEventListener("input", updateResults);
+    });
+  }
+});

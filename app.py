@@ -401,6 +401,87 @@ def create_app() -> Flask:
             return jsonify({"ok": True, "items": items})
         except ValueError:
             return jsonify({"ok": False, "error": "bad patient_id"}), 400
+        
+    @app.get("/api/search")
+    def api_search():
+
+        entity = request.args.get("entity", "patients")
+
+        results = []
+
+        if entity == "patients":
+
+            name = request.args.get("full_name_prefix", "")
+
+            results = query_all("""
+            SELECT id, full_name, phone, email, birth_date
+            FROM patients
+            WHERE full_name LIKE ?
+            ORDER BY full_name
+            LIMIT 50
+            """, (name + "%",))
+
+        elif entity == "doctors":
+
+            name = request.args.get("full_name_prefix", "")
+            specialty = request.args.get("specialty", "")
+
+            sql = """
+            SELECT id, full_name, specialty, cabinet, phone
+            FROM doctors
+            WHERE 1=1
+            """
+
+            params = []
+
+            if name:
+                sql += " AND full_name LIKE ?"
+                params.append(name + "%")
+
+            if specialty:
+                sql += " AND specialty=?"
+                params.append(specialty)
+
+            sql += " ORDER BY full_name LIMIT 50"
+
+            results = query_all(sql, tuple(params))
+
+
+        elif entity == "appointments":
+
+            status = request.args.get("status_id", "")
+
+            sql = """
+            SELECT
+            a.id,
+            p.full_name as patient_name,
+            d.full_name as doctor_name,
+            s.name as status_name,
+            pt.name as payment_type_name,
+            a.visit_datetime,
+            a.reason
+            FROM appointments a
+            JOIN patients p ON p.id=a.patient_id
+            JOIN doctors d ON d.id=a.doctor_id
+            JOIN statuses s ON s.id=a.status_id
+            JOIN payment_types pt ON pt.id=a.payment_type_id
+            WHERE 1=1
+            """
+
+            params = []
+
+            if status:
+                sql += " AND a.status_id=?"
+                params.append(status)
+
+            sql += " ORDER BY a.visit_datetime DESC LIMIT 50"
+
+            results = query_all(sql, tuple(params))
+
+        return jsonify({
+            "entity": entity,
+            "rows": [dict(r) for r in results]
+        })
 
     # ---------- Администрирование ----------
     @app.get("/admin")
@@ -509,6 +590,23 @@ def create_app() -> Flask:
             flash(f"Ошибка БД: {e}", "danger")
 
         return redirect(url_for("admin", table=table))
+    
+    @app.post("/admin/<table>/update/<int:id>")
+    def admin_update(table, id):
+
+        if table not in ALLOWED_ADMIN_TABLES:
+            return jsonify({"ok": False})
+
+        field = request.form["field"]
+        value = request.form["value"]
+
+        try:
+            execute(f"UPDATE {table} SET {field}=? WHERE id=?",
+                    (value, id))
+            return jsonify({"ok": True})
+
+        except Exception as e:
+            return jsonify({"ok": False, "error": str(e)})
 
     return app
 
